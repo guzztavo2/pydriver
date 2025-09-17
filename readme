@@ -1,0 +1,9 @@
+[x] Para buildar o docker:
+docker build -f .devcontainer/Dockerfile -t pydriver .
+
+Abrir o VNC1 Manualmente:
+START_VNC=1 /usr/local/bin/entry.sh bash
+
+
+docker compose build --no-cache
+docker compose up

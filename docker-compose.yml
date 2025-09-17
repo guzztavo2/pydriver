@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: pydriver_app
+    working_dir: /app
+    shm_size: 2gb
+    ports:
+      - "5900:5900"    # VNC
+    environment:
+      - DISPLAY=:99
+      - VNC_PORT=5900
+    volumes:
+      - .:/app
+    command: sleep infinity
