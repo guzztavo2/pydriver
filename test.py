@@ -18,7 +18,7 @@ class test(SeleniumGrid):
     MAX_COUNT_ERRORS = 4
     ACTUAL_COUNT_ERROR = MAX_COUNT_ERRORS
 
-    def execucao_geral(self):
+    def general_execution(self):
         Utils.print_with_time(f"Starting General Execution - {self.GeneralExecution.current_position}")
         try:
             if self.GeneralExecution.is_first():
@@ -65,7 +65,7 @@ class test(SeleniumGrid):
             Utils.print_with_time("Fail in execute login, finalizing.")
             return False
 
-    def execucao_consulta(self):
+    def consult_execution(self):
         Utils.print_with_time(f"Starting execution of consult - {self.ConsultationExecution.current_position}")
 
         if self.information_to_consult is None:

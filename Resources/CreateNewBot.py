@@ -99,6 +99,7 @@ folder_path = select_directories()
 selenium_type = selections("\nSelected de folder you need:",['Selenoid', 'Selenium Grid'])
 simulate_loading()
 botName = get_value("Enter your bot's name:", onlyLetters=True)
+TARGET_URL = get_value("Bot's Target url: ")
 simulate_loading()
 selenium_type = "SeleniumGrid" if selenium_type == 1 else "Selenoid"
 botStr = botName
@@ -118,18 +119,20 @@ class {botName}({selenium_type}):
     
     consult_table_name = ""
     result_table_name = ""
-    
     information_to_consult = None
 
+    TARGET_URL = "{TARGET_URL}"
     MAX_COUNT_ERRORS = 4
     ACTUAL_COUNT_ERROR = MAX_COUNT_ERRORS
 
-    def execucao_geral(self):
-        Utils.Utils.print_with_time_with_time("Inicio da execução")
+    def general_execution(self):
+        Utils.print_with_time(f"Starting General Execution - {{self.GeneralExecution.current_position}}")
         try:
-            self.start_driver()
-            if self.executar_login() is False:
-                raise Exception("Erro ao executar o login")
+            if self.GeneralExecution.is_first():
+                self.options.add('--remote-debugging-port=9222')
+            self.start_driver() 
+            if self.execute_login() is False:
+                raise Exception("Error in execution of login")
         except Exception as e:
             self.ACTUAL_COUNT_ERROR -= 1
             if self.ACTUAL_COUNT_ERROR > 0:
@@ -137,68 +140,67 @@ class {botName}({selenium_type}):
                 return "CONTINUE"
             return "BREAK"
 
-    def executar_login(self, MAX_COUNT_ERRORS = 3):
+    def execute_login(self, MAX_COUNT_ERRORS = 3):
         try:
             driver = self.get_driver()
-            if "url da aplicação" not in driver.current_url:
-                if self.navigate_to_url("url da aplicação") is False:
-                    raise Exception("Não foi possível acessar a página de login.")
+            if self.TARGET_URL not in driver.current_url:
+                if self.navigate_to_url(self.TARGET_URL) is False:
+                    raise Exception("Not possible access page of login.")
 
-            self.send_keys_into_element("elemento_user", self.user.cpf)
-            self.send_keys_into_element("elemento_senha]", self.user.senha)
-            self.click_element("elemento_entrar", By.XPATH)
+            self.send_keys_into_element("user_element", self.user.get_username(), By.CSS_SELECTOR, raiseError=True)
+            self.send_keys_into_element("password_element", self.user.get_password(), By.CSS_SELECTOR, raiseError=True)
+            self.click_element("submit_login", By.XPATH)
             self.wait_page_loading()
 
-            if "url da pagina de resultado" not in driver.current_url:
-                Utils.Utils.print_with_time_with_time("Não foi possível acessar o login...")
+            if "url of the result login" not in driver.current_url:
+                Utils.print_with_time("Not possible access login...")
                 if MAX_COUNT_ERRORS > 0:
-                    Utils.Utils.print_with_time_with_time("Tentando novamente")
-                    return self.executar_login(MAX_COUNT_ERRORS)
-                Utils.Utils.print_with_time_with_time("Desativando usuário")
-                self.desativar_user("user_INVÁLIDO")
+                    Utils.print_with_time("Trying again")
+                    return self.execute_login(MAX_COUNT_ERRORS)
                 return False
 
-            Utils.Utils.print_with_time_with_time("Usuário logado com sucesso")
+            Utils.print_with_time("User logged in")
             return True
         except Exception as e:
-            Utils.Utils.print_with_time_with_time(f"Erro ao executar o login: {{e}}")
+            Utils.print_with_time(f"Error in execute login: {{e}}")
             MAX_COUNT_ERRORS -= 1
+
             if MAX_COUNT_ERRORS > 0:
-                Utils.Utils.print_with_time_with_time("Tentando realizar o login novamente")
-                return self.executar_login(MAX_COUNT_ERRORS)
-            Utils.Utils.print_with_time_with_time("Falha ao executar o login, finalizando.")
+                Utils.print_with_time("Trying execute login again")
+                return self.execute_login(MAX_COUNT_ERRORS)
+            Utils.print_with_time("Fail in execute login, finalizing.")
             return False
 
-    def execucao_consulta(self):
-        Utils.Utils.print_with_time_with_time("Iniciando a execução da consulta")
+    def consult_execution(self):
+        Utils.print_with_time(f"Starting execution of consult - {{self.ConsultationExecution.current_position}}")
 
         if self.information_to_consult is None:
-            self.information_to_consult = self.buscar_dados()
+            self.information_to_consult = self.fetch_data()
             if self.information_to_consult is False:
                 self.information_to_consult = None
                 return "CONTINUE"
         
-        respostaConsulta = self.executar_consulta()
+        responseOfConsultation = self.execute_consult()
 
-        if respostaConsulta is False:
-            Utils.Utils.print_with_time_with_time("Falha ao realizar a consulta")
+        if responseOfConsultation is False:
+            Utils.print_with_time("Fail in execution of consult")
             if self.ACTUAL_COUNT_ERROR <= 0:
-                Utils.Utils.print_with_time_with_time("Reiniciando tela")
+                Utils.print_with_time("Restart driver")
                 return "BREAK"
 
             self.ACTUAL_COUNT_ERROR -= 1
-            Utils.Utils.print_with_time_with_time("Tentando novamente")
+            Utils.print_with_time("Trying again!")
             return "CONTINUE"
-        elif respostaConsulta == "FALHA":
+        elif responseOfConsultation == "FAIL":
             return "BREAK"
         
         return "CONTINUE"
 
-    def executar_consulta(self, max_errors = 3):
+    def execute_consult(self, max_errors = 3):
         try:
             pass
         except Exception as e:
-            Utils.Utils.print_with_time_with_time(f"Erro ao executar consulta - tentativas {{max_errors}} - {{e}}")
+            Utils.print_with_time(f"Erro ao executar consulta - tentativas {{max_errors}} - {{e}}")
             if max_errors > 0:
                 return self.executar_consulta(max_errors=max_errors-1)
             return False

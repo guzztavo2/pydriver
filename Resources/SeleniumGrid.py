@@ -42,14 +42,14 @@ class SeleniumGrid(SeleniumDriver, MySqlConnection, Api):
             else:
                 self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENIUMGRID_URL'), options=options)) 
             
-            Utils.print_with_time(f"Iniciando driver - {session_name} - Produção")
+            Utils.print_with_time(f"Starting driver - {session_name} - Production")
         else:
             if use_undected_chrome_driver:
                 self.update_driver(uc.Chrome(options=options))
             else:
                 self.update_driver(webdriver.Chrome(options=options))
 
-            Utils.print_with_time(f"Iniciando driver - {session_name} - Local")
+            Utils.print_with_time(f"Starting driver - {session_name} - Local")
         
         return self
     
@@ -61,32 +61,32 @@ class SeleniumGrid(SeleniumDriver, MySqlConnection, Api):
             if 'Unable to find session with ID' in errorStr or 'Could not start a new session. Could not start a new session.' in errorStr:
                 self.ConsultationExecution.stop()
             else:
-                Utils.print_with_time(f"Erro ao executar o loop de execução geral - finalizando\nErro:{e}")
+                Utils.print_with_time(f"Error executing the general execution loop - finishing\nError:{e}")
             self.GeneralExecution.stop()
             return
         
         self.quit_driver()
-        Utils.print_with_time(f"Finalizando driver - {self.session_name}")
+        Utils.print_with_time(f"finishing driver - {self.session_name}")
         
     def running(self):
-        response = self.execucao_geral()
+        response = self.general_execution()
         if response is not None:
             return response
         
         if self.get_driver() is None:
-            Utils.print_with_time("Driver não foi localizado - reiniciando")
+            Utils.print_with_time("Driver not found - restarting")
             return "CONTINUE"
         try:
-            self.ConsultationExecution.start(self.execucao_consulta)
+            self.ConsultationExecution.start(self.consult_execution)
         except Exception as e:
             self.ConsultationExecution.stop()
-            Utils.print_with_time(f"Erro ao executar a consulta: {e}") 
+            Utils.print_with_time(f"Error executing the consultation: {e}") 
     
     @abstractmethod
-    def execucao_geral():
+    def general_execution():
         pass
 
     @abstractmethod
-    def execucao_consulta():
+    def consult_execution():
         pass
 

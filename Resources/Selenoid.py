@@ -14,13 +14,6 @@ class Selenoid(SeleniumDriver, MySqlConnection):
     def __init__(self, options=None):
         super().__init__(options)
 
-    @staticmethod
-    def is_driver_valid(driver):
-        try:
-            return driver is not None and driver.session_id
-        except:
-            return False
-
     def start_driver(self, start_in_production = None, page_load_strategy='none', loadImage = True, use_undected_chrome_driver = False):
         driver = self.get_driver()
         if driver is not None:
@@ -54,39 +47,36 @@ class Selenoid(SeleniumDriver, MySqlConnection):
             else:
                 self.update_driver(webdriver.Chrome(options=options))
 
-        if self.is_driver_valid(driver) == False:
-            return
         return self
     
     def start_thread(self):
-        Utils.print_with_time(f"bancoDados: {self.bancoDados} - tabela: {self.tabela} - idExecucao: {self.idExecucao} - userId: {self.userId}")
         try:
             self.ExecucaoGeral.start(self.running)
         except Exception as e:
-            Utils.print_with_time("Erro ao executar o loop de execução geral - finalizando")
+            Utils.print_with_time("Error executing the general execution loop - finishing")
             self.ExecucaoGeral.stop()
         
         self.quit_driver()
-        Utils.print_with_time(f"Finalizando driver - {self.session_name}")
+        Utils.print_with_time(f"finishing driver - {self.session_name}")
         
     def running(self):
-        response = self.execucao_geral()
+        response = self.general_execution()
         if response is not None:
             return response
         
         if self.get_driver() is None:
-            Utils.print_with_time("Driver não foi localizado - reiniciando")
+            Utils.print_with_time("Driver not found - restarting")
             return "CONTINUE"
         try:
-            self.ExecucaoConsulta.start(self.execucao_consulta)
+            self.ExecucaoConsulta.start(self.consult_execution)
         except Exception as e:
             self.ExecucaoConsulta.stop()
-            Utils.print_with_time(f"Erro ao executar a consulta: {e}") 
+            Utils.print_with_time(f"Error executing the consultation: {e}") 
     
     @abstractmethod
-    def execucao_geral():
+    def general_execution():
         pass
 
     @abstractmethod
-    def execucao_consulta():
+    def consult_execution():
         pass
