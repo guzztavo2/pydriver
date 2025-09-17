@@ -8,8 +8,9 @@ from integrations.MySqlConnection import MySqlConnection
 import undetected_chromedriver as uc
 
 class Selenoid(SeleniumDriver, MySqlConnection):
-    ExecucaoGeral = Loop()
-    ExecucaoConsulta = Loop()
+
+    GeneralExecution = Loop()
+    ConsultationExecution = Loop()
     
     def __init__(self, options=None):
         super().__init__(options)
@@ -51,10 +52,10 @@ class Selenoid(SeleniumDriver, MySqlConnection):
     
     def start_thread(self):
         try:
-            self.ExecucaoGeral.start(self.running)
+            self.GeneralExecution.start(self.running)
         except Exception as e:
             Utils.print_with_time("Error executing the general execution loop - finishing")
-            self.ExecucaoGeral.stop()
+            self.GeneralExecution.stop()
         
         self.quit_driver()
         Utils.print_with_time(f"finishing driver - {self.session_name}")
@@ -68,9 +69,9 @@ class Selenoid(SeleniumDriver, MySqlConnection):
             Utils.print_with_time("Driver not found - restarting")
             return "CONTINUE"
         try:
-            self.ExecucaoConsulta.start(self.consult_execution)
+            self.ConsultationExecution.start(self.consult_execution)
         except Exception as e:
-            self.ExecucaoConsulta.stop()
+            self.ConsultationExecution.stop()
             Utils.print_with_time(f"Error executing the consultation: {e}") 
     
     @abstractmethod
