@@ -1,4 +1,4 @@
-FROM python:3.8-slim-bullseye
+FROM python:3.8-slim-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY .devcontainer/start-vnc.sh /usr/local/bin/start-vnc.sh
 RUN chmod +x /usr/local/bin/start-vnc.sh
 
-# Dependências do sistema, GUI e Chromium
+# To linux ubuntu:
 RUN apt-get update && apt-get install -y \
     chromium chromium-driver \
     xvfb fluxbox tigervnc-standalone-server tigervnc-common \
