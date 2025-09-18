@@ -1,0 +1,5 @@
+Resources/__pycache__/
+Resources/automation/__pycache__/
+Resources/core/__pycache__/
+Resources/exceptions/__pycache__/
+Resources/integrations/__pycache__/
