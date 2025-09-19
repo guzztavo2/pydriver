@@ -59,14 +59,11 @@ def select_directories(actual_path = '../'):
     else:
         return select_directories(actual_path + f'/{list_dirs[selected_dir]}')
 
-Utils.print_with_time("Trying to locate the environment variables (.env)")
-simulate_loading()
-DIR_ENV = os.path.abspath("./Resources/.env")
-if os.path.exists(DIR_ENV) is False:
+def create_env_file(dir_path):
     create_env = get_value("It was not possible to locate the env, would you like to create a structure?\n\t0 - Yes\t1 - Nop\nSelection:", expected_results=[0,1], onlyNumbers=True)
     if create_env == 0:
         try:
-            Utils.print_with_time(f"Creating {DIR_ENV}")
+            Utils.print_with_time(f"Creating {dir_path}")
             dataToEnv = """
                     START_IN_PRODUCTION=False
                     #False executes in a local environment and True executes in a production environment using the SELENIUMGRID_URL or SELENOID_URL of the application.
@@ -89,15 +86,22 @@ if os.path.exists(DIR_ENV) is False:
                     CHROME_BINARY_LOCATION=/usr/bin/chromium
                     HOUR_FORMAT=%d/%m/%Y %H:%M:%S
                     """
-            Utils.create_file_insert_data(f"{DIR_ENV}", dataToEnv)
-            Utils.print_with_time(f"Created successfully: {DIR_ENV}")
+            Utils.create_file_insert_data(f"{dir_path}", dataToEnv)
+            Utils.print_with_time(f"Created successfully: {dir_path}")
         except Exception as e:
-            Utils.print_with_time(f"Error creating: {DIR_ENV}: {e}")
+            Utils.print_with_time(f"Error creating: {dir_path}: {e}")
+
+Utils.print_with_time("Trying to locate the environment variables (.env)")
+simulate_loading()
+DIR_ENV = os.path.abspath("./Resources/.env")
+if os.path.exists(DIR_ENV) is False:
+   create_env_file(DIR_ENV)
 else:
     Utils.print_with_time(f"Successfully located Env {DIR_ENV}")
-simulate_loading()
-folder_path = select_directories()
 
+simulate_loading()
+
+folder_path = select_directories()
 
 selenium_type = selections("\nSelected de folder you need:",['Selenoid', 'Selenium Grid'])
 simulate_loading()
