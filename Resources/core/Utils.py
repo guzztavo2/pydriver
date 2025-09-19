@@ -5,9 +5,12 @@ from urllib.parse import urlencode
 from json.decoder import JSONDecodeError
 class Utils:    
 
+    DATE_HOUR_FORMAT = None
     @staticmethod
     def current_time():
-        return datetime.now().strftime(Utils.get_env('HOUR_FORMAT') or '%d/%m/%Y %H:%M:%S')
+        if Utils.DATE_HOUR_FORMAT is None:
+            Utils.DATE_HOUR_FORMAT = Utils.get_env('DATE_HOUR_FORMAT') if not Utils.is_empty(Utils.get_env('DATE_HOUR_FORMAT')) else "%d/%m/%Y %H:%M:%S"
+        return datetime.now().strftime(Utils.DATE_HOUR_FORMAT)
         
     @staticmethod
     def print_with_time(message):
@@ -78,7 +81,7 @@ class Utils:
         from dotenv import load_dotenv
         load_dotenv()
         val = os.environ.get(key)
-        Utils.print_with_time(f"Finding environment variable: {key} ...... {val}")
+        # print(f"Finding environment variable: {key} ...... {val}")
         return val
 
     @staticmethod 
