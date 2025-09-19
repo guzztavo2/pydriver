@@ -44,7 +44,7 @@ def simulate_loading():
         time.sleep(0.01)
     print("\n")
 
-def select_directories(actual_path = './'):
+def select_directories(actual_path = '../'):
     actual_path = os.path.abspath(actual_path)
     list_dirs = ["... (back directory)", f"{actual_path[actual_path.rfind('/') + 1:]} (actual directory)"]
     list_dirs += [dir.name for dir in list(os.scandir(actual_path)) if dir.is_dir()]
@@ -104,8 +104,8 @@ simulate_loading()
 selenium_type = "SeleniumGrid" if selenium_type == 1 else "Selenoid"
 botStr = botName
 script = f"""
-from {selenium_type} import {selenium_type}
-from core.Utils import Utils
+from Resources.{selenium_type} import {selenium_type}
+from Resources.core.Utils import Utils
 from selenium.webdriver.common.by import By
 
 def auto_run(cls):
@@ -136,7 +136,7 @@ class {botName}({selenium_type}):
         except Exception as e:
             self.ACTUAL_COUNT_ERROR -= 1
             if self.ACTUAL_COUNT_ERROR > 0:
-                Utils.print_with_time(f"Erro ao iniciar o driver:{{e}} - Tentando novamente - {{self.ACTUAL_COUNT_ERROR}} / {{self.MAX_COUNT_ERRORS}}")
+                Utils.print_with_time(f"Error starting driver:{{e}} - Trying again - {{self.ACTUAL_COUNT_ERROR}} / {{self.MAX_COUNT_ERRORS}}")
                 return "CONTINUE"
             return "BREAK"
 
@@ -200,9 +200,9 @@ class {botName}({selenium_type}):
         try:
             pass
         except Exception as e:
-            Utils.print_with_time(f"Erro ao executar consulta - tentativas {{max_errors}} - {{e}}")
+            Utils.print_with_time(f"Error in execute consult - attempts {{max_errors}} - {{e}}")
             if max_errors > 0:
-                return self.executar_consulta(max_errors=max_errors-1)
+                return self.execute_consult(max_errors=max_errors-1)
             return False
 """
 
