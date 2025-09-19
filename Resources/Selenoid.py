@@ -15,7 +15,7 @@ class Selenoid(SeleniumDriver, MySqlConnection):
     def __init__(self, options=None):
         super().__init__(options)
 
-    def start_driver(self, start_in_production = None, page_load_strategy='none', loadImage = True, use_undected_chrome_driver = False):
+    def start_driver(self, start_in_production = None, page_load_strategy='none', load_images = True, use_undected_chrome_driver = False):
         driver = self.get_driver()
         if driver is not None:
             self.quit_driver()
@@ -27,7 +27,7 @@ class Selenoid(SeleniumDriver, MySqlConnection):
             
         options.page_load_strategy = page_load_strategy
 
-        if loadImage is False:
+        if load_images is False:
             options.add_argument("--blink-settings=imagesEnabled=false")
         
         session_name = self.session_name + "_" + str(int(time.time()))

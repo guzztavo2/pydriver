@@ -13,7 +13,7 @@ class SeleniumDriver(SeleniumManager):
         self.set_options(options)
 
     @classmethod
-    def set_startInProduction(cls, start_in_production):
+    def set_start_in_production(cls, start_in_production):
         cls.start_in_production = start_in_production
 
     @classmethod
@@ -47,9 +47,9 @@ class SeleniumDriver(SeleniumManager):
         return cls
     
     @classmethod 
-    def restart_driver(cls, session_name = '', page_load_strategy='none', loadImage = True):
+    def restart_driver(cls, session_name = '', page_load_strategy='none', load_images = True):
         cls.quit_driver()
-        return cls.start_driver(session_name, page_load_strategy, loadImage)
+        return cls.start_driver(session_name, page_load_strategy, load_images)
     
     @classmethod
     def get_driver(cls):
@@ -80,7 +80,7 @@ class SeleniumDriver(SeleniumManager):
                 cls.update_driver(None)
 
     @abstractmethod
-    def start_driver(cls, session_name = '', page_load_strategy='none', loadImage = True):
+    def start_driver(cls, session_name = '', page_load_strategy='none', load_images = True):
         pass
 
     @classmethod
