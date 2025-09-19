@@ -1,6 +1,7 @@
 from Resources.SeleniumGrid import SeleniumGrid
 from Resources.core.Utils import Utils
 from selenium.webdriver.common.by import By
+from Resources.automation.ProxyOption import ProxyOption
 
 def auto_run(cls):
     instance = cls()  
@@ -18,12 +19,20 @@ class test(SeleniumGrid):
     MAX_COUNT_ERRORS = 4
     ACTUAL_COUNT_ERROR = MAX_COUNT_ERRORS
 
+    def start_proxies():
+        proxyIpList = ["ip1", "ip2"]
+        proxyPortList = ["port1", "port2"]
+        proxyUsernameList = ["user1", "user2"]
+        proxyPasswordList = ["pass1", "pass2"]
+        ProxyOption.array_to_proxies(proxyIpList, proxyPortList, proxyUsernameList, proxyPasswordList)
+
     def general_execution(self):
         Utils.print_with_time(f"Starting General Execution - {self.GeneralExecution.current_position}")
         try:
             if self.GeneralExecution.is_first():
                 self.options.add('--remote-debugging-port=9222')
-            self.start_driver() 
+                # self.start_proxies()
+            self.start_driver(page_load_strategy='none', load_images = False, use_undected_chrome_driver = False) 
             if self.execute_login() is False:
                 raise Exception("Error in execution of login")
         except Exception as e:
