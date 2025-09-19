@@ -85,6 +85,9 @@ if os.path.exists(DIR_ENV) is False:
                     MYSQL_USER_PRODUCTION=*********
                     MYSQL_PASSWORD_PRODUCTION=*********
                     MYSQL_DATABASE_PRODUCTION=*********
+                    
+                    CHROME_BINARY_LOCATION=/usr/bin/chromium
+                    HOUR_FORMAT=%d/%m/%Y %H:%M:%S
                     """
             Utils.create_file_insert_data(f"{DIR_ENV}", dataToEnv)
             Utils.print_with_time(f"Created successfully: {DIR_ENV}")

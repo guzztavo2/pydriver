@@ -7,7 +7,7 @@ class Utils:
 
     @staticmethod
     def current_time():
-        return datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        return datetime.now().strftime(Utils.get_env('HOUR_FORMAT') or '%d/%m/%Y %H:%M:%S')
         
     @staticmethod
     def print_with_time(message):
