@@ -10,7 +10,7 @@ def auto_run(cls):
 
 @auto_run
 class test(SeleniumGrid):
-    session_name = "test"
+    session_name = "BOT_TEST"
     consult_table_name = ""
     result_table_name = ""
     information_to_consult = None
@@ -42,7 +42,7 @@ class test(SeleniumGrid):
                 return "CONTINUE"
             return "BREAK"
 
-    def execute_login(self, MAX_COUNT_ERRORS = 3):
+    def execute_login(self, max_login_errors = 3):
         try:
             driver = self.get_driver()
             if self.TARGET_URL not in driver.current_url:
@@ -56,9 +56,9 @@ class test(SeleniumGrid):
 
             if "url of the result login" not in driver.current_url:
                 Utils.print_with_time("Not possible access login...")
-                if MAX_COUNT_ERRORS > 0:
+                if max_login_errors > 0:
                     Utils.print_with_time("Trying again")
-                    return self.execute_login(MAX_COUNT_ERRORS)
+                    return self.execute_login(max_login_errors)
                 return False
 
             Utils.print_with_time("User logged in")
@@ -66,11 +66,11 @@ class test(SeleniumGrid):
         
         except Exception as e:
             Utils.print_with_time(f"Error in execute login: {e}")
-            MAX_COUNT_ERRORS -= 1
+            max_login_errors -= 1
 
-            if MAX_COUNT_ERRORS > 0:
+            if max_login_errors > 0:
                 Utils.print_with_time("Trying execute login again")
-                return self.execute_login(MAX_COUNT_ERRORS)
+                return self.execute_login(max_login_errors)
             Utils.print_with_time("Fail in execute login, finalizing.")
             return False
 
@@ -103,7 +103,7 @@ class test(SeleniumGrid):
         try:
             pass
         except Exception as e:
-            Utils.print_with_time(f"Error in execution of consults - attempts {max_errors} - {e}")
+            Utils.print_with_time(f"Error in execution of consult - attempts {max_errors} - {e}")
             if max_errors > 0:
                 return self.execute_consult(max_errors=max_errors-1)
             return False

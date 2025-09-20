@@ -47,9 +47,9 @@ class Utils:
             return False
     
     @staticmethod
-    def create_file_insert_data(fileDir, dataToInsert) -> bool:
+    def create_file_insert_data(fileDir:str, dataToInsert:str) -> bool:
         try:
-            f = open(f"{fileDir}", "x")
+            f = open(fileDir, "x")
             f.write(dataToInsert.strip())
             f.close()
             return True

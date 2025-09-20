@@ -144,46 +144,46 @@ class {botName}({selenium_type}):
         try:
             if self.GeneralExecution.is_first():
                 self.options.add('--remote-debugging-port=9222')
-                #self.start_proxies()
-
+                # self.start_proxies()
             self.start_driver(page_load_strategy='none', load_images = False, use_undected_chrome_driver = False) 
             if self.execute_login() is False:
                 raise Exception("Error in execution of login")
         except Exception as e:
             self.ACTUAL_COUNT_ERROR -= 1
             if self.ACTUAL_COUNT_ERROR > 0:
-                Utils.print_with_time(f"Error starting driver:{{e}} - Trying again - {{self.ACTUAL_COUNT_ERROR}} / {{self.MAX_COUNT_ERRORS}}")
+                Utils.print_with_time(f"Error in starting driver:{{e}} - Trying againg - {{self.ACTUAL_COUNT_ERROR}} / {{self.MAX_COUNT_ERRORS}}")
                 return "CONTINUE"
             return "BREAK"
 
-    def execute_login(self, MAX_COUNT_ERRORS = 3):
+    def execute_login(self, max_login_errors = 3):
         try:
             driver = self.get_driver()
             if self.TARGET_URL not in driver.current_url:
                 if self.navigate_to_url(self.TARGET_URL) is False:
                     raise Exception("Not possible access page of login.")
 
-            self.send_keys_into_element("user_element", self.user.get_username(), By.CSS_SELECTOR, raiseError=True)
-            self.send_keys_into_element("password_element", self.user.get_password(), By.CSS_SELECTOR, raiseError=True)
+            self.send_keys_into_element("user_element", self.user.get_username())
+            self.send_keys_into_element("password_element", self.user.get_password())
             self.click_element("submit_login", By.XPATH)
             self.wait_page_loading()
 
             if "url of the result login" not in driver.current_url:
                 Utils.print_with_time("Not possible access login...")
-                if MAX_COUNT_ERRORS > 0:
+                if max_login_errors > 0:
                     Utils.print_with_time("Trying again")
-                    return self.execute_login(MAX_COUNT_ERRORS)
+                    return self.execute_login(max_login_errors)
                 return False
 
             Utils.print_with_time("User logged in")
             return True
+        
         except Exception as e:
             Utils.print_with_time(f"Error in execute login: {{e}}")
-            MAX_COUNT_ERRORS -= 1
+            max_login_errors -= 1
 
-            if MAX_COUNT_ERRORS > 0:
+            if max_login_errors > 0:
                 Utils.print_with_time("Trying execute login again")
-                return self.execute_login(MAX_COUNT_ERRORS)
+                return self.execute_login(max_login_errors)
             Utils.print_with_time("Fail in execute login, finalizing.")
             return False
 
@@ -216,7 +216,7 @@ class {botName}({selenium_type}):
         try:
             pass
         except Exception as e:
-            Utils.print_with_time(f"Error in execute consult - attempts {{max_errors}} - {{e}}")
+            Utils.print_with_time(f"Error in execution of consult - attempts {{max_errors}} - {{e}}")
             if max_errors > 0:
                 return self.execute_consult(max_errors=max_errors-1)
             return False
