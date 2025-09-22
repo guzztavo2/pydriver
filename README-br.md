@@ -1,50 +1,66 @@
-# Pydriver
+# PyDriver
 
-O **Pydriver** é um framework criado para facilitar o uso de drivers Selenium em Python, com suporte tanto para ambientes de desenvolvimento (usando VNC/Docker) quanto para produção (Selenium Grid ou Selenoid).
+PyDriver é um framework criado para facilitar o uso do **Selenium** em Python, 
+tanto em ambientes de desenvolvimento com **Selenium Grid** ou **Selenoid**, quanto em produção.
 
-Seu foco é:
-- **Facilidade de uso**
-- **Portabilidade**
-- **Isolamento**
-
-Ele funciona em containers Docker, e no ambiente de desenvolvimento utiliza **VNC** para visualização do navegador. Já em **produção**, o VNC não é necessário, mas os pacotes continuam sendo obrigatórios.
+Ele oferece:
+- 🚀 Facilidade de uso  
+- 📦 Portabilidade  
+- 🔒 Isolamento via **Docker**  
+- 👀 Visualização via **VNC** (opcional em ambiente de desenvolvimento)  
 
 ---
 
-## 📦 Instalação
+## 📋 Pré-requisitos
 
-Clone o repositório e rode os containers:
+Você não precisa instalar o **Python** localmente, pois ele já vem no pacote do **Dockerfile**.
+
+O Dockerfile já contém:  
+- Python 3.8  
+- Chromium + Chromium Driver  
+- Xvfb, Fluxbox e TigerVNC (para visualização do navegador em Dev)  
+- Dependências gráficas necessárias para o Selenium rodar corretamente  
+
+---
+
+## ⚙️ Instalação
+
+Clone o repositório e suba o container:
 
 ```bash
 docker compose build --no-cache
-docker compose up
+docker compose up -d
 ```
 
-Para abrir no **VSCode**, utilize a extensão **Dev Containers**:
-
+Ou, no VSCode, instale a extensão **Dev Containers** e rode:  
 ```
-Dev Containers: build and open in container
+Dev Containers: Build and Open in Container
 ```
-
-### Visualizando o navegador (opcional)
-
-- **Linux (Debian/Ubuntu):**
-  ```bash
-  sudo apt-get install tigervnc-viewer
-  vncviewer localhost:5901
-  ```
-
-- **Windows:**
-  Baixe o [RealVNC Viewer](https://www.realvnc.com/)
-  ```
-  Conectar em: http://localhost:5901
-  ```
 
 ---
 
-## ⚙️ Estrutura do Projeto
+## 🖥️ Acesso ao VNC
 
+Para visualizar o navegador (modo Dev), utilize um cliente **VNC**.
+
+### Linux
 ```bash
+sudo apt-get install tigervnc-viewer
+vncviewer localhost:5901
+```
+
+### Windows
+Baixe e instale o [RealVNC Viewer](https://www.realvnc.com/).  
+Depois conecte em:  
+```
+localhost:5901
+```
+
+---
+
+## 📂 Estrutura do Projeto
+
+```
 /Resources
   /automation/
     Proxy.py
@@ -66,105 +82,103 @@ Dev Containers: build and open in container
   Selenoid.py
 ```
 
-### Pastas Principais
+---
 
-- **automation/** → Configurações e drivers Selenium.
-- **core/** → Funções utilitárias e loops de execução.
-- **integrations/** → Integrações já prontas (MySQL, API, etc.).
+## ⚡ Uso do Framework
+
+1. Execute o script `CreateNewBot.py` para criar um novo bot:
+   ```bash
+   python Resources/CreateNewBot.py
+   ```
+   Ele pedirá o nome do script e o driver (Selenium Grid ou Selenoid).
+
+2. Configure o arquivo `.env` conforme necessário:
+
+   ```env
+   START_IN_PRODUCTION = False
+   API_URL = "http://sua-api.com"
+   SELENIUMGRID_URL = "http://grid:4444/wd/hub"
+   SELENOID_URL = "http://selenoid:4444/wd/hub"
+   MYSQL_IN_PRODUCTION = False
+   MYSQL_TEST = "mysql://root:senha@localhost/testdb"
+   MYSQL_PRODUCTION = "mysql://root:senha@prod-db/proddb"
+   CHROME_BINARY_LOCATION = "/usr/bin/chromium"
+   ```
+
+3. Execute seu bot criado!
 
 ---
 
-## 🚀 Criando um novo bot
+## 🛠️ Funcionalidades Principais
 
-A primeira execução deve ser do script **CreateNewBot.py**:
+- **Gerenciamento do SeleniumDriver**
+  - `start_driver`, `quit_driver`, etc.  
+- **Gerenciamento de Elementos**
+  - `select_element`, `send_keys_into_element`, `click_element`, etc.  
+- **Proxy Management**
+  - `add_proxy`, `array_to_proxies`  
+- **Integrações**
+  - MySQL (busca, inserção e queries)  
+  - API (requisições e respostas preparadas)  
+- **Funções auxiliares (`Utils`)**
+  - `print_with_time`, `validate_cpf`, `only_numbers`, `request_and_prepare_response`, etc.  
 
-```bash
-python Resources/CreateNewBot.py
+---
+
+## 🧩 Customizações
+
+Você pode sobrescrever funções em seu próprio script.  
+Exemplo: redefinindo `select_element` para usar **Expected Conditions**:
+
+Essa versão é a mais rapida, já que usa o `find_element's` para buscar os elementos, o problema é que pode dar problema em certas páginas, então caso você tenha mais de robô, essa mudança é interessante, que você pode modificar qualquer função:
+```python - find_element
+def select_element(self, select, by = By.XPATH, scrollInto = True, isMultipleElements = False, raiseError = True, parentElement = None):
+        try:
+            self.driver.implicitly_wait(2)
+            element_s = None
+            if isMultipleElements:
+                if parentElement is not None:
+                    element_s = parentElement.find_elements(by, select)
+                else:
+                    element_s = self.driver.find_elements(by, select)
+                if scrollInto:
+                    self.scroll_into_element(element_s[0])
+            else:
+                if parentElement is not None:
+                    element_s = parentElement.find_element(by, select)
+                else:
+                    element_s = self.driver.find_element(by, select)
+                if scrollInto:
+                    self.scroll_into_element(element_s)
+                    
+            if Utils.is_empty(element_s):
+                if raiseError:
+                    raise selenium.common.ElementNotInteractableException(f"Non-interactable element - {select} - {by}")
+            
+            return element_s
+            
+        except selenium.common.NoSuchElementException:
+            if raiseError:
+                raise selenium.common.NoSuchElementException(f"Non-interactable element - {select} - {by}")
+            return None
+        except Exception as e:
+            Utils.print_with_time(f"Erro ao buscar elemento: {e}")
+            if raiseError:
+                raise selenium.common.NoSuchElementException(f"Non-interactable element - {select} - {by}")
+            Utils.print_with_time(f"Non-interactable element - {select} - {by}")
+            return None
 ```
 
-Ele irá:
-- Criar um novo script com o nome e driver escolhidos (Selenium Grid ou Selenoid).
-- Validar e configurar variáveis de ambiente (.env).
-- Sugerir o melhor diretório para salvar seu script.
-
-⚠️ **Recomendação:** mantenha seus scripts pelo menos **um diretório acima da pasta `./Resources/`**.
-
-Exemplo de imports dependendo da estrutura:
-```python
-# Script no mesmo nível da pasta Resources
-from automation.SeleniumDriver import SeleniumDriver
-
-# Script um nível acima da Resources
-from Resources.automation.SeleniumDriver import SeleniumDriver
-
-# Script dois níveis acima
-from pydriver.Resources.automation.SeleniumDriver import SeleniumDriver
+```python - Expected Conditions
+def select_element(self, select, by = By.XPATH, scrollInto=True, isMultipleElements=False, raiseError=True, parentElement=None):
+    try:
+        wait = WebDriverWait(self.driver, self.MAX_WEBDRIVER_WAIT)
+        if isMultipleElements:
+            element_s = wait.until(EC.presence_of_all_elements_located((by, select)))
+        else:
+            element_s = wait.until(EC.presence_of_element_located((by, select)))
+        return element_s
+    except Exception as e:
+        Utils.print_with_time(f"Erro ao buscar elemento: {e}")
+        return None
 ```
-
----
-
-## 🔧 Variáveis de Ambiente (.env)
-
-| Variável                | Descrição |
-|--------------------------|-----------|
-| `START_IN_PRODUCTION`    | `True` ou `False`. Define se rodará em produção (Grid/Selenoid) ou dev. |
-| `API_URL`                | URL da API usada para integrações. |
-| `SELENIUMGRID_URL`       | URL do Selenium Grid quando em produção. |
-| `SELENOID_URL`           | URL do Selenoid quando em produção. |
-| `MYSQL_IN_PRODUCTION`    | `True` ou `False`. Define se usará `MYSQL_PRODUCTION` ou `MYSQL_TEST`. |
-| `CHROME_BINARY_LOCATION` | Caminho do binário do Chrome (caso necessário). |
-
----
-
-## 🧩 Componentes Principais
-
-### automation/
-- **SeleniumOptions.py** → Configurações de opções do Selenium (user agents, experimental options, etc.).
-- **ProxyOption.py** → Gerenciamento de proxies:
-  - `add_proxy(proxy)` → adiciona um proxy.
-  - `array_to_proxies(list)` → adiciona múltiplos proxies (com ou sem autenticação).
-- **SeleniumManager.py** → Interação com elementos da página:
-  - `select_element`
-  - `scroll_into_element`
-  - `send_keys`
-  - `click_element`
-  - entre outros.
-- **SeleniumDriver.py** → Gerenciamento do driver (start, quit, modo produção/dev).
-
-### core/
-- **Utils.py** → Funções utilitárias:
-  - `print_with_time`, `request_and_prepare_response`, `url_encoded`, `validate_cpf`, `only_numbers`, etc.
-- **Loop.py** → Gerenciamento de loops de execução (`general_execution`, `consult_execution`).
-
-### integrations/
-- **Api.py / ApiUser.py** → Requisições para APIs.
-- **MySql.py / MySqlConnection.py** → Integrações com banco de dados MySQL.
-
-Você pode adicionar novas integrações e importá-las em `Resources/Selenoid.py` ou `Resources/SeleniumGrid.py`.
-
----
-
-## 🛠️ Recursos
-
-- Suporte a **proxies** (com e sem autenticação).
-- **User Agents** customizados.
-- **Undetected ChromeDriver** para burlar detecções de robôs.
-- Integrações com **APIs** e **MySQL**.
-- Modo **desenvolvimento** (com VNC) e **produção** (Grid/Selenoid).
-
----
-
-## 📄 Dependências
-
-Todas as dependências estão listadas em:
-```
-./requirements.txt
-```
-
----
-
-## 📌 Conclusão
-
-O **Pydriver** foi criado para simplificar o uso do Selenium em ambientes isolados com Docker, reduzindo complexidade e oferecendo flexibilidade para desenvolvimento e produção.
-
----
