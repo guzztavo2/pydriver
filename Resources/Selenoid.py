@@ -16,44 +16,50 @@ class Selenoid(SeleniumDriver, MySqlConnection):
         super().__init__(options)
 
     def start_driver(self, start_in_production = None, page_load_strategy='none', load_images = True, use_undected_chrome_driver = False):
-        driver = self.get_driver()
-        if driver is not None:
-            self.quit_driver()
+        try:
+            self.before_start_driver()
+            driver = self.get_driver()
+            if driver is not None:
+                self.quit_driver()
 
-        if use_undected_chrome_driver:
-            options = self.options.undected_chrome_options()
-        else:
-            options = self.options.chrome_options()
+            if use_undected_chrome_driver:
+                options = self.options.undected_chrome_options()
+            else:
+                options = self.options.chrome_options()
+                
+            options.page_load_strategy = page_load_strategy
+
+            if load_images is False:
+                options.add_argument("--blink-settings=imagesEnabled=false")
             
-        options.page_load_strategy = page_load_strategy
-
-        if load_images is False:
-            options.add_argument("--blink-settings=imagesEnabled=false")
-        
-        session_name = self.session_name + "_" + str(int(time.time()))
-        # options.set_capability('browserVersion', '128.0')
-        options.set_capability('selenoid:options', {
-            'enableVNC': True, 'enableVideo': False, 'name': session_name})
-        
-        start_in_production = self.start_in_production if start_in_production is None else start_in_production
-        if start_in_production:
-            if use_undected_chrome_driver:
-                capabilities = options.to_capabilities()
-                self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENOID_URL'), capabilities=capabilities)) 
+            session_name = self.session_name + "_" + str(int(time.time()))
+            # options.set_capability('browserVersion', '128.0')
+            options.set_capability('selenoid:options', {
+                'enableVNC': True, 'enableVideo': False, 'name': session_name})
+            
+            start_in_production = self.start_in_production if start_in_production is None else start_in_production
+            if start_in_production:
+                if use_undected_chrome_driver:
+                    capabilities = options.to_capabilities()
+                    self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENOID_URL'), capabilities=capabilities)) 
+                else:
+                    self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENOID_URL'), options=options)) 
             else:
-                self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENOID_URL'), options=options)) 
-        else:
-            if use_undected_chrome_driver:
-                self.update_driver(uc.Chrome(options=options))
-            else:
-                self.update_driver(webdriver.Chrome(options=options))
-
+                if use_undected_chrome_driver:
+                    self.update_driver(uc.Chrome(options=options))
+                else:
+                    self.update_driver(webdriver.Chrome(options=options))
+        except Exception as e:
+            self.on_error(e)
+            raise Exception(e)
         return self
     
     def start_thread(self):
+        self.before_start_loop()
         try:
             self.GeneralExecution.start(self.running)
         except Exception as e:
+            self.on_error(e)
             Utils.print_with_time("Error executing the general execution loop - finishing")
             self.GeneralExecution.stop()
         
@@ -71,9 +77,25 @@ class Selenoid(SeleniumDriver, MySqlConnection):
         try:
             self.ConsultationExecution.start(self.consult_execution)
         except Exception as e:
+            self.on_error(e)
             self.ConsultationExecution.stop()
             Utils.print_with_time(f"Error executing the consultation: {e}") 
     
+    @abstractmethod 
+    def before_start_loop(self):
+        Utils.print_with_time("Starting loop")
+        pass
+    
+    @abstractmethod
+    def before_start_driver(self):
+        Utils.print_with_time("Starting driver")
+        pass
+    
+    @abstractmethod
+    def on_error(self, error):
+        Utils.print_with_time(f"[ERROR] - {error}")
+        pass
+
     @abstractmethod
     def general_execution():
         pass

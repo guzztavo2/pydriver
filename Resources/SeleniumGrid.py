@@ -16,47 +16,53 @@ class SeleniumGrid(SeleniumDriver, MySqlConnection, Api):
         super().__init__(options)
 
     def start_driver(self, start_in_production = None, page_load_strategy='none', load_images = False, use_undected_chrome_driver = False):
-        driver = self.get_driver()
-        if driver is not None:
-            self.quit_driver()
+        try:
+            self.before_start_driver()
+            driver = self.get_driver()
+            if driver is not None:
+                self.quit_driver()
 
-        capabilities = None
-        if use_undected_chrome_driver:
-            options = self.options.undected_chrome_options()
-        else:
-            options = self.options.chrome_options()
-
-        if page_load_strategy is not None:
-            options.page_load_strategy = page_load_strategy
-
-        if load_images is False:
-            options.add_argument("--blink-settings=imagesEnabled=false")
-        session_name = self.session_name + "_" + str(int(time.time()))
-        options.set_capability("se:name", session_name)
-        start_in_production = self.start_in_production if start_in_production is None else start_in_production
-
-        if start_in_production:
+            capabilities = None
             if use_undected_chrome_driver:
-                capabilities = options.to_capabilities()
-                self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENIUMGRID_URL'), capabilities=capabilities)) 
+                options = self.options.undected_chrome_options()
             else:
-                self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENIUMGRID_URL'), options=options)) 
-            
-            Utils.print_with_time(f"Starting driver - {session_name} - Production")
-        else:
-            if use_undected_chrome_driver:
-                self.update_driver(uc.Chrome(options=options))
-            else:
-                self.update_driver(webdriver.Chrome(options=options))
+                options = self.options.chrome_options()
 
-            Utils.print_with_time(f"Starting driver - {session_name} - Local")
-        
+            if page_load_strategy is not None:
+                options.page_load_strategy = page_load_strategy
+
+            if load_images is False:
+                options.add_argument("--blink-settings=imagesEnabled=false")
+            session_name = self.session_name + "_" + str(int(time.time()))
+            options.set_capability("se:name", session_name)
+            start_in_production = self.start_in_production if start_in_production is None else start_in_production
+
+            if start_in_production:
+                if use_undected_chrome_driver:
+                    capabilities = options.to_capabilities()
+                    self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENIUMGRID_URL'), capabilities=capabilities)) 
+                else:
+                    self.update_driver(webdriver.Remote(command_executor=Utils.get_env('SELENIUMGRID_URL'), options=options)) 
+                
+                Utils.print_with_time(f"Starting driver - {session_name} - Production")
+            else:
+                if use_undected_chrome_driver:
+                    self.update_driver(uc.Chrome(options=options))
+                else:
+                    self.update_driver(webdriver.Chrome(options=options))
+
+                Utils.print_with_time(f"Starting driver - {session_name} - Local")
+        except Exception as e:
+            self.on_error(e)
+            raise Exception(e)
         return self
     
     def start_thread(self):
+        self.before_start_loop()
         try:
             self.GeneralExecution.start(self.running)
         except Exception as e:
+            self.on_error(e)
             errorStr = str(e)
             if 'Unable to find session with ID' in errorStr or 'Could not start a new session. Could not start a new session.' in errorStr:
                 self.ConsultationExecution.stop()
@@ -80,12 +86,28 @@ class SeleniumGrid(SeleniumDriver, MySqlConnection, Api):
             self.ConsultationExecution.start(self.consult_execution)
         except Exception as e:
             self.ConsultationExecution.stop()
+            self.on_error(e)
             Utils.print_with_time(f"Error executing the consultation: {e}") 
     
+    @abstractmethod 
+    def before_start_loop(self):
+        Utils.print_with_time("Starting loop")
+        pass
+    
     @abstractmethod
-    def general_execution():
+    def before_start_driver(self):
+        Utils.print_with_time("Starting driver")
+        pass
+    
+    @abstractmethod
+    def on_error(self, error):
+        Utils.print_with_time(f"[ERROR] - {error}")
         pass
 
     @abstractmethod
-    def consult_execution():
+    def general_execution(self):
+        pass
+
+    @abstractmethod
+    def consult_execution(self):
         pass
