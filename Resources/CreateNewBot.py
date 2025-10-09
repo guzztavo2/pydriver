@@ -129,6 +129,9 @@ class {botName}({selenium_type}):
     TARGET_URL = "{TARGET_URL}"
     MAX_COUNT_ERRORS = 4
     ACTUAL_COUNT_ERROR = MAX_COUNT_ERRORS
+    
+    def before_start_loop(self):
+        self.start_proxies()
 
     def start_proxies():
         proxyIpList = ["ip1", "ip2"]
@@ -140,8 +143,8 @@ class {botName}({selenium_type}):
     def general_execution(self):
         Utils.print_with_time(f"Starting General Execution - {{self.GeneralExecution.current_position}}")
         try:
-            if self.GeneralExecution.is_first():
-                self.options.add('--remote-debugging-port=9222')
+            # if self.GeneralExecution.is_first():
+                # self.options.add('--remote-debugging-port=9222')
                 # self.start_proxies()
             self.start_driver(page_load_strategy='none', load_images = False, use_undected_chrome_driver = False) 
             if self.execute_login() is False:
