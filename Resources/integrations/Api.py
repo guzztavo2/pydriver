@@ -14,10 +14,10 @@ class Api:
             return False
         elif response is not None:
             if 'erro' in response:
-                raise FailRequestAPI(f"Erro na resposta da API: {response}")
+                raise FailRequestAPI(f"Error in API response: {response}")
             return response
         else:
-            raise FailRequestAPI("Erro ao fazer a requisição para a API.")
+            raise FailRequestAPI("Error making request to API.")
 
     def get_user(self):
         user = self.user

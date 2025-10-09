@@ -1,7 +1,5 @@
 import os
-import re
 import sys
-import platform
 import time
 from core.Utils import Utils
 

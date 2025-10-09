@@ -89,4 +89,3 @@ class SeleniumGrid(SeleniumDriver, MySqlConnection, Api):
     @abstractmethod
     def consult_execution():
         pass
-
